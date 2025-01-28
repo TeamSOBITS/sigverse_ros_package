@@ -199,7 +199,7 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
         else if (typeValue == TYPE_IMAGE) {
             auto image = sensor_msgs::msg::Image();
 
-			// image.        = (uint32_t)bsonView["msg"]["header"]["seq"]           .get_int32();
+			// image.header.seq        = (uint32_t)bsonView["msg"]["header"]["seq"]           .get_int32();
 			image.header.stamp.sec  = (uint32_t)bsonView["msg"]["header"]["stamp"]["secs"] .get_int32();
 			image.header.stamp.nanosec = (uint32_t)bsonView["msg"]["header"]["stamp"]["nsecs"].get_int32();
 			image.header.frame_id   =           bsonView["msg"]["header"]["frame_id"]      .get_utf8().value.to_string();
@@ -278,12 +278,11 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 		// Tf list data (SIGVerse Original Type)
 		else if(typeValue==TYPE_TF_LIST)
 		{
-            auto node = rclcpp::Node::make_shared("tf_broadcaster_node");
-            tf2_ros::TransformBroadcaster transformBroadcaster(node); 
+			// static tf::TransformBroadcaster transformBroadcaster;
 
 			bsoncxx::array::view tfArrayView = bsonView["msg"].get_array().value;
 
-            std::vector<geometry_msgs::msg::TransformStamped> stampedTransformList;
+			// std::vector<tf::StampedTransform> stampedTransformList;
 
 			int i = 0;
 
@@ -303,29 +302,29 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
                     timestamp = clock.now();
                 }
 				
+                // tf::Vector3 position = tf::Vector3
+				// (
+				// 	(double)(*itr)["transform"]["translation"]["x"].get_double(),
+				// 	(double)(*itr)["transform"]["translation"]["y"].get_double(),
+				// 	(double)(*itr)["transform"]["translation"]["z"].get_double()
+				// );
 
-                geometry_msgs::msg::Vector3 translation;
-                translation.x = (double)(*itr)["transform"]["translation"]["x"].get_double();
-                translation.y = (double)(*itr)["transform"]["translation"]["y"].get_double();
-                translation.z = (double)(*itr)["transform"]["translation"]["z"].get_double();
+				// tf::Quaternion quaternion = tf::Quaternion
+				// (
+				// 	(double)(*itr)["transform"]["rotation"]["x"].get_double(),
+				// 	(double)(*itr)["transform"]["rotation"]["y"].get_double(),
+				// 	(double)(*itr)["transform"]["rotation"]["z"].get_double(),
+				// 	(double)(*itr)["transform"]["rotation"]["w"].get_double()
+				// );
 
-                geometry_msgs::msg::Quaternion quaternion;
-                quaternion.x = (double)(*itr)["transform"]["rotation"]["x"].get_double();
-                quaternion.y = (double)(*itr)["transform"]["rotation"]["y"].get_double();
-                quaternion.z = (double)(*itr)["transform"]["rotation"]["z"].get_double();
-                quaternion.w = (double)(*itr)["transform"]["rotation"]["w"].get_double();
+				// tf::Transform transform;
+				// transform.setOrigin(position);
+				// transform.setRotation(quaternion);
 
-                geometry_msgs::msg::TransformStamped transformStamped;
-                transformStamped.header.stamp = timestamp;
-                transformStamped.header.frame_id = frameId;
-                transformStamped.child_frame_id = childFrameId;
-                transformStamped.transform.translation = translation;
-                transformStamped.transform.rotation = quaternion;
-
-                stampedTransformList.push_back(transformStamped);
+				// stampedTransformList.push_back(tf::StampedTransform(transform, timestamp, frameId, childFrameId));
 			}
 
-            transformBroadcaster.sendTransform(stampedTransformList);
+			// transformBroadcaster.sendTransform(stampedTransformList);
 		}
     }
 
