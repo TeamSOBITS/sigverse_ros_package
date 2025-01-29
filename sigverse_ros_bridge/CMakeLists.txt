@@ -9,7 +9,6 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
@@ -21,7 +20,6 @@ find_package(tf2_ros REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 include_directories(
-  ${catkin_INCLUDE_DIRS}
   /usr/local/include
   /usr/local/include/bsoncxx/v_noabi
 )
@@ -45,12 +43,11 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include)
 link_directories(/usr/local/lib)
 add_executable(sigverse_ros_bridge src/sigverse_ros_bridge.cpp)
 ament_target_dependencies(sigverse_ros_bridge
   rclcpp
-  rclpy
   geometry_msgs
   std_msgs
   sensor_msgs
@@ -64,6 +61,6 @@ sigverse_ros_bridge
 )
 #--- end C++
 
-target_link_libraries(sigverse_ros_bridge ${catkin_LIBRARIES} mongocxx bsoncxx)
+target_link_libraries(sigverse_ros_bridge mongocxx bsoncxx)
 
 ament_package()
