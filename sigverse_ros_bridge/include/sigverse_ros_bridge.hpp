@@ -42,7 +42,8 @@
 #define DEFAULT_PORT 50001
 #define DEFAULT_SYNC_TIME_MAX_NUM 1
 
-class SIGVerseROSBridge : public rclcpp::Node {
+class SIGVerseROSBridge : public rclcpp::Node
+{
 private:
     static pid_t gettid(void);
 
@@ -64,5 +65,5 @@ private:
 
 public:
     SIGVerseROSBridge();
-    int run(int argc, char **argv);
+    int run();
 };

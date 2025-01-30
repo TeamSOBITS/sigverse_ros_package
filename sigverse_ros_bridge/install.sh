@@ -27,17 +27,8 @@ make
 sudo make install
 
 # Install rosbridge_suite
-cd $DIR/../..
-git clone -b humble https://github.com/RobotWebTools/rosbridge_suite.git
-
-# Install ROS dependecies
-rosdep update
-rosdep install --from-paths src --ignore-src
-
-# Install Python dependecies
-pip3 install --upgrade pip
-pip3 install pymongo
-pip3 install tornado
+sudo apt update
+sudo apt-get install -y ros-humble-rosbridge-server
 
 cd $DIR
 

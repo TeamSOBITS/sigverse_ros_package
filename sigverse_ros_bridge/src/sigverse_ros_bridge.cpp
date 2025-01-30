@@ -9,7 +9,6 @@ pid_t SIGVerseROSBridge::gettid(void) {
 }
 
 void SIGVerseROSBridge::rosSigintHandler(int sig) {
-    (void)sig;
     isRunning = false;
     rclcpp::shutdown();
 }
@@ -53,6 +52,9 @@ void SIGVerseROSBridge::setArrayDouble(std::array<double, ArrayNum> &destArray, 
 
 void *SIGVerseROSBridge::receivingThread(void *param) {
     int dstSocket = *((int *)param);
+
+    int dummyArgc = 0;
+    char **dummyArgv;
 
     char *buf;
     buf = new char[BUFFER_SIZE];
@@ -125,16 +127,18 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 
         bsoncxx::document::view bsonView((const uint8_t *)buf, (std::size_t)msgSize);
 
-        std::string opValue    = bsonView["op"].get_utf8().value.to_string();
+        std::string opValue = bsonView["op"].get_utf8().value.to_string();
         std::string topicValue = bsonView["topic"].get_utf8().value.to_string();
-        std::string typeValue  = bsonView["type"].get_utf8().value.to_string();
+        std::string typeValue = bsonView["type"].get_utf8().value.to_string();
 
         // Advertise
         if (publisherMap.count(topicValue) == 0 && typeValue != TYPE_TIME_SYNC && typeValue != TYPE_TF_LIST) {
-            if      (typeValue == TYPE_TWIST) publisherMap[topicValue]       = node->create_publisher<geometry_msgs::msg::Twist>(topicValue, 10);
+            if (typeValue == TYPE_TWIST) publisherMap[topicValue] = node->create_publisher<geometry_msgs::msg::Twist>(topicValue, 10);
+            
             else if (typeValue == TYPE_CAMERA_INFO) publisherMap[topicValue] = node->create_publisher<sensor_msgs::msg::CameraInfo>(topicValue, 10);
-            else if (typeValue == TYPE_IMAGE) publisherMap[topicValue]       = node->create_publisher<sensor_msgs::msg::Image>(topicValue, 10);
-            else if (typeValue == TYPE_LASER_SCAN) publisherMap[topicValue]  = node->create_publisher<sensor_msgs::msg::LaserScan>(topicValue, 10);
+            
+            else if (typeValue == TYPE_IMAGE) publisherMap[topicValue] = node->create_publisher<sensor_msgs::msg::Image>(topicValue, 10);
+            else if (typeValue == TYPE_LASER_SCAN) publisherMap[topicValue] = node->create_publisher<sensor_msgs::msg::LaserScan>(topicValue, 10);
             else {
                 std::cout << "Not compatible message type! :" << typeValue << std::endl;
                 continue;
@@ -167,9 +171,9 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 			cameraInfo.header.stamp.nanosec = (uint32_t)bsonView["msg"]["header"]["stamp"]["nsecs"].get_int32();
 			cameraInfo.header.frame_id      =           bsonView["msg"]["header"]["frame_id"].get_utf8().value.to_string();
 
-			cameraInfo.height               = (uint32_t)bsonView["msg"]["height"].get_int32();
-			cameraInfo.width                = (uint32_t)bsonView["msg"]["width"] .get_int32();
-			cameraInfo.distortion_model     =           bsonView["msg"]["distortion_model"].get_utf8().value.to_string();
+			cameraInfo.height            = (uint32_t)bsonView["msg"]["height"].get_int32();
+			cameraInfo.width             = (uint32_t)bsonView["msg"]["width"] .get_int32();
+			cameraInfo.distortion_model  =           bsonView["msg"]["distortion_model"].get_utf8().value.to_string();
 
 			bsoncxx::array::view dView = bsonView["msg"]["D"].get_array().value;
 			cameraInfo.d.resize((size_t)std::distance(dView.cbegin(), dView.cend()));
@@ -214,17 +218,17 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
         else if (typeValue == TYPE_LASER_SCAN) {
             auto laserScan = sensor_msgs::msg::LaserScan();
 
-			laserScan.header.stamp.sec     = (uint32_t)bsonView["msg"]["header"]["stamp"]["secs"].get_int32();
+			laserScan.header.stamp.sec     = (uint32_t)bsonView["msg"]["header"]["stamp"]["secs"] .get_int32();
 			laserScan.header.stamp.nanosec = (uint32_t)bsonView["msg"]["header"]["stamp"]["nsecs"].get_int32();
 			laserScan.header.frame_id      =           bsonView["msg"]["header"]["frame_id"].get_utf8().value.to_string();
 
-			laserScan.angle_min            = (float)bsonView["msg"]["angle_min"].get_double();
-			laserScan.angle_max            = (float)bsonView["msg"]["angle_max"].get_double();
-			laserScan.angle_increment      = (float)bsonView["msg"]["angle_increment"].get_double();
-			laserScan.time_increment       = (float)bsonView["msg"]["time_increment"].get_double();
-			laserScan.scan_time            = (float)bsonView["msg"]["scan_time"].get_double();
-			laserScan.range_min            = (float)bsonView["msg"]["range_min"].get_double();
-			laserScan.range_max            = (float)bsonView["msg"]["range_max"].get_double();
+			laserScan.angle_min       = (float)bsonView["msg"]["angle_min"].get_double();
+			laserScan.angle_max       = (float)bsonView["msg"]["angle_max"].get_double();
+			laserScan.angle_increment = (float)bsonView["msg"]["angle_increment"].get_double();
+			laserScan.time_increment  = (float)bsonView["msg"]["time_increment"].get_double();
+			laserScan.scan_time       = (float)bsonView["msg"]["scan_time"].get_double();
+			laserScan.range_min       = (float)bsonView["msg"]["range_min"].get_double();
+			laserScan.range_max       = (float)bsonView["msg"]["range_max"].get_double();
 
 			size_t sizet = (size_t)((laserScan.angle_max - laserScan.angle_min) / laserScan.angle_increment + 1);
 
@@ -243,12 +247,15 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
         }
 
 		// Time Synchronization (SIGVerse Original Type)
-		else if(typeValue==TYPE_TIME_SYNC) {
-			if(syncTimeCnt < syncTimeMaxNum) {
-                uint32_t sec  = (uint32_t)bsonView["msg"]["data"]["secs"].get_int32();
+		else if(typeValue==TYPE_TIME_SYNC)
+		{
+			if(syncTimeCnt < syncTimeMaxNum)
+			{
+                uint32_t sec = (uint32_t)bsonView["msg"]["data"]["secs"].get_int32();
                 uint32_t nsec = (uint32_t)bsonView["msg"]["data"]["nsecs"].get_int32();
 
                 rclcpp::Time timestamp(sec, nsec);
+
                 rclcpp::Clock clock;
                 rclcpp::Time now = clock.now();
 
@@ -257,7 +264,7 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 
                 std::string timeGap = "time_gap," + std::to_string(gapSec) + "," + std::to_string(gapMsec);
 
-                write(dstSocket, timeGap.c_str(), std::strlen(timeGap.c_str()));
+                ssize_t size = write(dstSocket, timeGap.c_str(), std::strlen(timeGap.c_str()));
 
                 std::cout << "TYPE_TIME_SYNC " << timeGap.c_str() << std::endl;
 
@@ -266,7 +273,8 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 		}
 
 		// Tf list data (SIGVerse Original Type)
-		else if(typeValue==TYPE_TF_LIST) {
+		else if(typeValue==TYPE_TF_LIST)
+		{
             auto node = rclcpp::Node::make_shared("tf_broadcaster_node");
             tf2_ros::TransformBroadcaster transformBroadcaster(node); 
 
@@ -274,18 +282,20 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 
             std::vector<geometry_msgs::msg::TransformStamped> stampedTransformList;
 
+			int i = 0;
 
-            for(auto itr = tfArrayView.cbegin(); itr != tfArrayView.cend(); ++itr) {
+            for(auto itr = tfArrayView.cbegin(); itr != tfArrayView.cend(); ++itr)
+            {
                 rclcpp::Time timestamp;
 
                 std::string frameId      = (*itr)["header"]["frame_id"].get_utf8().value.to_string();
                 int32_t sec              = (*itr)["header"]["stamp"]["secs"].get_int32();
                 int32_t nsec             = (*itr)["header"]["stamp"]["nsecs"].get_int32();
-
                 timestamp = rclcpp::Time(sec, nsec, RCL_ROS_TIME);
                 std::string childFrameId = (*itr)["child_frame_id"].get_utf8().value.to_string();
 
-                if(sec == 0 && nsec == 0) {
+                if(sec == 0 && nsec == 0)
+                {
                     rclcpp::Clock clock;
                     timestamp = clock.now();
                 }
@@ -323,31 +333,11 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 SIGVerseROSBridge::SIGVerseROSBridge()
     : rclcpp::Node("sigverse_ros_bridge_node"),
         transformBroadcaster(this)
-        {
+{
     signal(SIGINT, rosSigintHandler);
 }
 
-int SIGVerseROSBridge::run(int argc, char **argv) {
-	uint16_t portNumber;
-
-	// Set port number
-	if(argc > 1)
-	{
-		portNumber = (uint16_t)std::atoi(argv[1]);
-	}
-	else
-	{
-		portNumber = DEFAULT_PORT;
-	}
-
-	if(argc > 2)
-	{
-		syncTimeMaxNum = (uint16_t)std::atoi(argv[2]);
-	}
-	else
-	{
-		syncTimeMaxNum = DEFAULT_SYNC_TIME_MAX_NUM;
-	}
+int SIGVerseROSBridge::run() {
     int serverSocket;
     int clientSocket;
     struct sockaddr_in serverAddr;
@@ -360,9 +350,9 @@ int SIGVerseROSBridge::run(int argc, char **argv) {
         return -1;
     }
 
-    serverAddr.sin_family      = AF_INET;
+    serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port        = htons(portNumber);
+    serverAddr.sin_port = htons(DEFAULT_PORT);
 
     if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1) {
         std::cout << "Failed to bind socket" << std::endl;
@@ -392,9 +382,8 @@ int SIGVerseROSBridge::run(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-    // Call rclcpp::init only in main thread
     rclcpp::init(argc, argv);
 
     SIGVerseROSBridge bridge;
-    return bridge.run(argc, argv);
+    return bridge.run();
 }

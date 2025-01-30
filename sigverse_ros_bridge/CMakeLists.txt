@@ -7,9 +7,9 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
@@ -48,8 +48,8 @@ link_directories(/usr/local/lib)
 add_executable(sigverse_ros_bridge src/sigverse_ros_bridge.cpp)
 ament_target_dependencies(sigverse_ros_bridge
   rclcpp
-  geometry_msgs
   std_msgs
+  geometry_msgs
   sensor_msgs
   tf2
   tf2_ros
