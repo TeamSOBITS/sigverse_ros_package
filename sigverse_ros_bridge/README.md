@@ -28,24 +28,16 @@ $ sudo make install
 ### Install SIGVerse ROS Bridge
 
 ```bash:
-$ cd ~/catkin_ws/src
-$ git clone https://github.com/SIGVerse/sigverse_ros_package.git
+$ cd ~/colcon_ws/src
+$ git clone -b humble-devel https://github.com/SIGVerse/sigverse_ros_package.git
 $ cd ..
-$ catkin_make
+$ colcon build
 ```
 
 
 ## How to use
 
 ```bash:
-$ rosrun sigverse_ros_bridge sigverse_ros_bridge
+$ ros2 run  sigverse_ros_bridge sigverse_ros_bridge
 ```
-
-Default port number is 50001.  
-If you need change the port number, please pass the argument.
-
-```bash
-$ rosrun sigverse_ros_bridge sigverse_ros_bridge 12345
-```
-
 
