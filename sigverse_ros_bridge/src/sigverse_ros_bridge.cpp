@@ -247,10 +247,8 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
         }
 
 		// Time Synchronization (SIGVerse Original Type)
-		else if(typeValue==TYPE_TIME_SYNC)
-		{
-			if(syncTimeCnt < syncTimeMaxNum)
-			{
+		else if(typeValue==TYPE_TIME_SYNC) {
+			if(syncTimeCnt < syncTimeMaxNum) {
                 uint32_t sec = (uint32_t)bsonView["msg"]["data"]["secs"].get_int32();
                 uint32_t nsec = (uint32_t)bsonView["msg"]["data"]["nsecs"].get_int32();
 
@@ -273,8 +271,7 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 		}
 
 		// Tf list data (SIGVerse Original Type)
-		else if(typeValue==TYPE_TF_LIST)
-		{
+		else if(typeValue==TYPE_TF_LIST) {
             auto node = rclcpp::Node::make_shared("tf_broadcaster_node");
             tf2_ros::TransformBroadcaster transformBroadcaster(node); 
 
@@ -284,8 +281,7 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 
 			int i = 0;
 
-            for(auto itr = tfArrayView.cbegin(); itr != tfArrayView.cend(); ++itr)
-            {
+            for(auto itr = tfArrayView.cbegin(); itr != tfArrayView.cend(); ++itr) {
                 rclcpp::Time timestamp;
 
                 std::string frameId      = (*itr)["header"]["frame_id"].get_utf8().value.to_string();
@@ -294,8 +290,7 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
                 timestamp = rclcpp::Time(sec, nsec, RCL_ROS_TIME);
                 std::string childFrameId = (*itr)["child_frame_id"].get_utf8().value.to_string();
 
-                if(sec == 0 && nsec == 0)
-                {
+                if(sec == 0 && nsec == 0) {
                     rclcpp::Clock clock;
                     timestamp = clock.now();
                 }
@@ -332,8 +327,7 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 
 SIGVerseROSBridge::SIGVerseROSBridge()
     : rclcpp::Node("sigverse_ros_bridge_node"),
-        transformBroadcaster(this)
-{
+        transformBroadcaster(this) {
     signal(SIGINT, rosSigintHandler);
 }
 
