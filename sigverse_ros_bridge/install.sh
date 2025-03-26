@@ -27,9 +27,8 @@ make
 sudo make install
 
 # Install rosbridge_suite
-sudo apt update
-sudo apt-get install -y ros-humble-rosbridge-server
-
 cd $DIR
+cd ../../
+git clone https://github.com/TeamSOBITS/rosbridge_suite.git
 
 echo "╚══╣ Install: SIGVERSE ROS BRIDGE (FINISHED) ╠══╝"
