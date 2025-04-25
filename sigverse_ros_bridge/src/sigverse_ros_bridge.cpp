@@ -272,7 +272,6 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 
 		// Tf list data (SIGVerse Original Type)
 		else if(typeValue==TYPE_TF_LIST) {
-            auto node = rclcpp::Node::make_shared("tf_broadcaster_node");
             tf2_ros::TransformBroadcaster transformBroadcaster(node); 
 
 			bsoncxx::array::view tfArrayView = bsonView["msg"].get_array().value;
@@ -364,9 +363,12 @@ int SIGVerseROSBridge::run() {
             std::cout << "Failed to accept client connection" << std::endl;
             continue;
         }
-        std::cout << "Failed to accept client connection" << std::endl;
+        std::cout << "Success to accept client connection" << std::endl;
         pthread_t thread;
         pthread_create(&thread, NULL, receivingThread, &clientSocket);
+        pthread_detach(thread);
+
+		usleep(10 * 1000);
     }
 
     close(serverSocket);
