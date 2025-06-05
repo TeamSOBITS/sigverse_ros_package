@@ -1,4 +1,4 @@
-#include "sigverse_ros_bridge.hpp"
+#include "sigverse_ros_bridge/sigverse_ros_bridge.hpp"
 
 bool SIGVerseROSBridge::isRunning = true;
 int  SIGVerseROSBridge::syncTimeCnt;
@@ -8,7 +8,7 @@ pid_t SIGVerseROSBridge::gettid(void) {
     return syscall(SYS_gettid);
 }
 
-void SIGVerseROSBridge::rosSigintHandler(int sig) {
+void SIGVerseROSBridge::rosSigintHandler(int /*sig*/) {
     isRunning = false;
     rclcpp::shutdown();
 }
@@ -52,9 +52,6 @@ void SIGVerseROSBridge::setArrayDouble(std::array<double, ArrayNum> &destArray, 
 
 void *SIGVerseROSBridge::receivingThread(void *param) {
     int dstSocket = *((int *)param);
-
-    int dummyArgc = 0;
-    char **dummyArgv;
 
     char *buf;
     buf = new char[BUFFER_SIZE];
@@ -262,7 +259,7 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 
                 std::string timeGap = "time_gap," + std::to_string(gapSec) + "," + std::to_string(gapMsec);
 
-                ssize_t size = write(dstSocket, timeGap.c_str(), std::strlen(timeGap.c_str()));
+                write(dstSocket, timeGap.c_str(), std::strlen(timeGap.c_str()));
 
                 std::cout << "TYPE_TIME_SYNC " << timeGap.c_str() << std::endl;
 
@@ -277,8 +274,6 @@ void *SIGVerseROSBridge::receivingThread(void *param) {
 			bsoncxx::array::view tfArrayView = bsonView["msg"].get_array().value;
 
             std::vector<geometry_msgs::msg::TransformStamped> stampedTransformList;
-
-			int i = 0;
 
             for(auto itr = tfArrayView.cbegin(); itr != tfArrayView.cend(); ++itr) {
                 rclcpp::Time timestamp;
