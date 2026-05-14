@@ -29,7 +29,7 @@ $ sudo make install
 
 ```bash:
 $ cd ~/colcon_ws/src
-$ git clone -b humble-devel https://github.com/SIGVerse/sigverse_ros_package.git
+$ git clone -b jazzy-devel https://github.com/SIGVerse/sigverse_ros_package.git
 $ cd ..
 $ colcon build
 ```
